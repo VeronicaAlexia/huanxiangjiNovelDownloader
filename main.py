@@ -49,8 +49,8 @@ class Book:
             chapter_file_name = catalogue[0].replace(".html", '.txt')
             if os.path.exists(os.path.join("config", self.book_name, chapter_file_name)):
                 write_file(
-                    os.path.join("novel", self.book_name + ".txt"),
-                    "\n\n\n" + write_file(os.path.join("config", self.book_name, chapter_file_name), 'r')
+                    path=os.path.join("novel", self.book_name + ".txt"),
+                    content="\n\n\n" + write_file(os.path.join("config", self.book_name, chapter_file_name), 'r')
                 )
                 merge_text.append(chapter_file_name)
         if merge_text:
