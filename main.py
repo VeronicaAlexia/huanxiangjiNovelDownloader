@@ -12,8 +12,10 @@ class Book:
         self.book_author = re.findall('<p>作者：(.*?)</p>', self.book_info_html)[0]
         self.book_state = re.findall('>状态：(.*?)</p>', self.book_info_html)[0]
         self.book_update = re.findall('<p>最后更新：(.*?)</p>', self.book_info_html)[0]
-        if not os.path.exists("//config//"):
+        if not os.path.exists("./config"):
             os.mkdir("./config")
+        if not os.path.exists("./novel"):
+            os.mkdir("./novel")
 
     def get_catalogue(self):
         download_url_list = list()
@@ -26,13 +28,13 @@ class Book:
         return False
 
     def save_chapter(self, catalogue_info):
+        open("./novel/" + self.book_name + ".txt", 'w')
         for catalogue in catalogue_info:
-            open("./novel/" + self.book_name + ".txt", 'w')
             chapter_file_name = catalogue[0].replace(".html", '.txt')
             if os.path.exists("./config/" + chapter_file_name):
                 with open("./novel/" + self.book_name + ".txt", 'a', encoding='utf-8') as f:
                     with open("./config/" + chapter_file_name, 'r', encoding='utf-8') as f1:
-                        f.write(f1.read())
+                        f.write("\n\n\n" + f1.read())
 
     def get_context(self):
         chapter_info = self.get_catalogue()

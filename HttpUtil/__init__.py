@@ -6,7 +6,7 @@ headers = {
 
 
 def get(url: str, params: dict = None) -> str:
-    print(url)
+    # print(url)
     response = requests.get(url, params=params, headers=headers)
     response.encoding = 'gbk'
     if response.status_code == 200:
