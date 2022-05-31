@@ -4,6 +4,13 @@ import sys
 import HttpUtil
 
 
+def write_file(path: str, mode: str = "a", content: str = ""):
+    if mode == "r":
+        return open(path, mode, encoding='utf-8').read()
+    with open(path, mode, encoding='utf-8') as f:
+        f.write(content)
+
+
 class Book:
     def __init__(self, book_id):
         self.book_url = 'http://www.huanxiangji.com/book/{}/'.format(book_id)
@@ -12,10 +19,19 @@ class Book:
         self.book_author = re.findall('<p>作者：(.*?)</p>', self.book_info_html)[0]
         self.book_state = re.findall('>状态：(.*?)</p>', self.book_info_html)[0]
         self.book_update = re.findall('<p>最后更新：(.*?)</p>', self.book_info_html)[0]
+        self.introduce = ""
         if not os.path.exists("./config"):
             os.mkdir("./config")
         if not os.path.exists("./novel"):
             os.mkdir("./novel")
+
+    def show_book_information(self):
+        self.introduce += "书名：{}\n".format(self.book_name)
+        self.introduce += "作者：{}\n".format(self.book_author)
+        self.introduce += "状态：{}\n".format(self.book_state)
+        self.introduce += "最后更新：{}\n".format(self.book_update)
+        self.introduce += "书籍地址：{}\n".format(self.book_url)
+        print(self.introduce, "\n")
 
     def get_catalogue(self):
         download_url_list = list()
@@ -28,13 +44,15 @@ class Book:
         return False
 
     def save_chapter(self, catalogue_info):
-        open("./novel/" + self.book_name + ".txt", 'w')
+        write_file("./novel/" + self.book_name + ".txt", 'w', self.introduce)
         for catalogue in catalogue_info:
             chapter_file_name = catalogue[0].replace(".html", '.txt')
             if os.path.exists("./config/" + chapter_file_name):
-                with open("./novel/" + self.book_name + ".txt", 'a', encoding='utf-8') as f:
-                    with open("./config/" + chapter_file_name, 'r', encoding='utf-8') as f1:
-                        f.write("\n\n\n" + f1.read())
+                write_file(
+                    "./novel/" + self.book_name + ".txt", 'a',
+                    "\n\n\n" + write_file("./config/" + chapter_file_name, 'r')
+                )
+        self.introduce = ""
 
     def get_context(self):
         chapter_info = self.get_catalogue()
@@ -49,17 +67,17 @@ class Book:
             content_html = HttpUtil.get(self.book_url + chapter_id)
             content_info = content_html.split('<div class="content" id="content">')[1].split('</div>')[0]
             content = re.sub('<br />', '\n', content_info).replace('&nbsp;', '').replace(" ", "").split('\n')
-            content_text = chapter_name
-            for line in content:
-                if line.strip() != '':
-                    content_text += "\n　　" + line
-            with open("./config/" + chapter_id.replace(".html", '.txt'), 'w', encoding='utf-8') as f:
-                f.write(content_text)
+            content_text = chapter_name + ''.join(["\n　　" + line for line in content if line.strip() != ''])
+            write_file("./config/" + chapter_id.replace(".html", '.txt'), 'w', content_text)
         return chapter_info
 
 
 if __name__ == '__main__':
-    book = Book(sys.argv[1])
-    chapter_list = book.get_context()
-    if chapter_list:
-        book.save_chapter(chapter_list)
+    try:
+        book = Book(sys.argv[1])
+        book.show_book_information()
+        chapter_list = book.get_context()
+        if chapter_list:
+            book.save_chapter(chapter_list)
+    except IndexError:
+        print("请输入书籍ID")
