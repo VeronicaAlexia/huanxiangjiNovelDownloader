@@ -5,9 +5,12 @@ headers = {
 }
 
 
-def get(url: str, params: dict = None) -> str:
-    # print(url)
-    response = requests.get(url, params=params, headers=headers)
-    response.encoding = 'gbk'
-    if response.status_code == 200:
-        return str(response.text)
+def get(url: str, params: dict = None, max_retry: int = 5) -> str:
+    for retry in range(max_retry):
+        try:
+            response = requests.get(url, params=params, headers=headers)
+            response.encoding = 'gbk'
+            if response.status_code == 200:
+                return str(response.text)
+        except Exception as error:
+            print("Get retry: {} error:{}".format(retry, error))

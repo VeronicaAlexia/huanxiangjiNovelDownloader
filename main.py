@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 import HttpUtil
 
 
@@ -50,13 +49,12 @@ class Book:
             chapter_file_name = catalogue[0].replace(".html", '.txt')
             if os.path.exists(os.path.join("config", self.book_name, chapter_file_name)):
                 write_file(
-                    "./novel/" + self.book_name + ".txt", 'a',
+                    os.path.join("novel", self.book_name + ".txt"),
                     "\n\n\n" + write_file(os.path.join("config", self.book_name, chapter_file_name), 'r')
                 )
                 merge_text.append(chapter_file_name)
         if merge_text:
             print(self.book_name, "本地缓存文件一共 {} 章, 已合并完毕".format(len(merge_text)))
-
 
     def get_context(self):
         chapter_info = self.get_catalogue()
@@ -76,12 +74,19 @@ class Book:
         return chapter_info
 
 
+def shell():
+    import argparse
+    parser = argparse.ArgumentParser(description='小说下载器', usage='python main.py -i <book_id>')
+    parser.add_argument('-i', '--id', help='输入书籍id', required=True)
+    book_id = parser.parse_args().id
+    book_config = Book(book_id)
+    book_config.show_book_information()
+    chapter_list = book_config.get_context()
+    if chapter_list:
+        book_config.save_chapter(book_config.get_catalogue())
+    else:
+        print("没有获取到任何章节信息，下载失败！")
+
+
 if __name__ == '__main__':
-    try:
-        book = Book(sys.argv[1])
-        book.show_book_information()
-        chapter_list = book.get_context()
-        if chapter_list:
-            book.save_chapter(chapter_list)
-    except IndexError:
-        print("请输入书籍ID")
+    shell()
